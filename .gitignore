@@ -1,0 +1,12 @@
+node_modules/
+.next/
+dist/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+.vercel
+.claude/settings.local.json
+claude-settings.local.json
+supabase/.temp/

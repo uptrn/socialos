@@ -1,0 +1,102 @@
+@import "tailwindcss";
+
+/* SocialOS design tokens — see docs/product/design-system.md */
+:root {
+  --brand-ink: #0b1a3e;
+  --brand-blue: #1453f5;
+  --brand-blue-hover: #0e42d1;
+  --brand-cyan: #0bc3f5;
+  --brand-violet: #6a3df7;
+  --brand-gradient: linear-gradient(135deg, #0bc3f5 0%, #1453f5 55%, #6a3df7 100%);
+
+  --bg: #f6f8fc;
+  --surface: #ffffff;
+  --surface-2: #eef2fa;
+  --border: #dce3f0;
+  --text: var(--brand-ink);
+  --muted: #5b6788;
+
+  --success: #12b76a;
+  --warning: #f79009;
+  --danger: #e5383b;
+
+  --shadow: 0 1px 2px rgb(11 26 62 / 0.04), 0 4px 16px rgb(11 26 62 / 0.06);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand-ink: #f4f7ff;
+    --brand-blue: #4c7dff;
+    --brand-blue-hover: #6b93ff;
+    --brand-cyan: #3dd3fa;
+    --brand-violet: #8e6bff;
+
+    --bg: #0a1128;
+    --surface: #111a36;
+    --surface-2: #17223f;
+    --border: #26324f;
+    --text: #f4f7ff;
+    --muted: #9aa6c4;
+
+    --success: #32d583;
+    --warning: #fdb022;
+    --danger: #f97066;
+
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 16px rgb(0 0 0 / 0.25);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand-blue);
+  --color-brand-hover: var(--brand-blue-hover);
+  --color-cyan: var(--brand-cyan);
+  --color-violet: var(--brand-violet);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --radius-card: 12px;
+  --shadow-card: var(--shadow);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.bg-brand-gradient {
+  background: var(--brand-gradient);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-blue);
+  outline-offset: 2px;
+}
+
+/* Long-form text on the legal pages. */
+.legal h1 { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.02em; }
+.legal h2 { font-size: 1.25rem; font-weight: 700; margin-top: 2rem; }
+.legal h3 { font-weight: 600; margin-top: 1.25rem; }
+.legal p, .legal ul { margin-top: 0.75rem; line-height: 1.65; }
+.legal ul { list-style: disc; padding-left: 1.25rem; }
+.legal li + li { margin-top: 0.35rem; }
+.legal a { color: var(--brand-blue); text-decoration: underline; }
+.legal .meta { color: var(--muted); font-size: 0.875rem; margin-top: 0.5rem; }

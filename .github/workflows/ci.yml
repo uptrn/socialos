@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Core unit tests + all migrations and tenant-isolation checks on in-memory Postgres.
+      - run: npm test
+      # Route types (PageProps, RouteContext) are generated, not committed.
+      - run: npx next typegen
+        working-directory: apps/web
+      - run: npm run typecheck
+      - run: npx eslint .
+        working-directory: apps/web
+      - run: npx next build
+        working-directory: apps/web
