@@ -23,7 +23,7 @@ export const getAccess = cache(async (orgId: string): Promise<BillingAccess> => 
   const db = createAdminClient();
   const [{ data: sub }, { data: org }] = await Promise.all([
     db.from('subscriptions').select('plan, status, trial_ends_at, past_due_since, stripe_subscription_id').eq('org_id', orgId).maybeSingle(),
-    db.from('organizations').select('billing_exempt').eq('id', orgId).single(),
+    db.from('organizations').select('billing_exempt, suspended_at, suspended_reason').eq('id', orgId).single(),
   ]);
   return computeAccess(
     sub
@@ -37,6 +37,7 @@ export const getAccess = cache(async (orgId: string): Promise<BillingAccess> => 
       : null,
     !!org?.billing_exempt,
     new Date(),
+    org?.suspended_at ? { reason: org.suspended_reason } : null,
   );
 });
 

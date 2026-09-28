@@ -46,3 +46,16 @@ describe('features', () => {
     expect(planFromLookupKey('other_price')).toBeNull();
   });
 });
+
+describe('suspension', () => {
+  it('locks a suspended workspace whatever its plan', async () => {
+    const { computeAccess } = await import('../src');
+    const now = new Date('2026-09-28T00:00:00Z');
+    const paid = { plan: 'growth', status: 'active', trialEndsAt: null, pastDueSince: null, stripeSubscriptionId: 'sub_1' };
+    expect(computeAccess(paid, false, now).state).toBe('active');
+    const s = computeAccess(paid, false, now, { reason: 'Spam' });
+    expect(s).toMatchObject({ state: 'locked', suspended: true, plan: 'growth' });
+    expect(s.message).toContain('suspended: Spam');
+    expect(computeAccess(null, true, now, { reason: null }).state).toBe('locked');
+  });
+});

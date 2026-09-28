@@ -36,6 +36,7 @@ export async function setupStatus(): Promise<{ sections: SetupSection[]; heartbe
         { label: 'Media link secret', ok: (process.env.MEDIA_PROXY_SECRET ?? '').length >= 32, required: true, hint: 'MEDIA_PROXY_SECRET, at least 32 random characters.' },
         { label: 'Simulated accounts off', ok: process.env.ENABLE_MOCK_ACCOUNTS !== 'true', required: true, hint: 'Leave ENABLE_MOCK_ACCOUNTS unset in production.' },
         { label: 'Email (Resend)', ok: env('RESEND_API_KEY', 'ALERT_EMAIL_FROM'), required: true, hint: 'RESEND_API_KEY and ALERT_EMAIL_FROM on a verified domain: alerts, invitations, approvals.' },
+        { label: 'Platform admins', ok: env('PLATFORM_ADMIN_EMAILS'), required: true, hint: 'PLATFORM_ADMIN_EMAILS: comma-separated emails of SocialOS staff who can open /admin (suspend, trials, internal plan).' },
         { label: 'Legal pages', ok: legalConfigured(), required: true, hint: 'LEGAL_COMPANY_NAME, LEGAL_CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_JURISDICTION. Have the texts reviewed.' },
       ],
     },

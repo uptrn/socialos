@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { getAccess } from '@/lib/billing/access';
 import { inboxSince } from '@/lib/inbox/window';
+import { LEGAL } from '@/lib/legal';
+import { isPlatformAdmin } from '@/lib/platform-admin';
 import { createUserClient } from '@/lib/supabase/server';
 import { getWorkspace } from '@/lib/workspace';
 import { Sidebar } from './sidebar';
@@ -34,14 +36,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         currentBrandId={ws.brand.id}
         approvals={approvals}
         inboxOpen={inboxOpen ?? 0}
+        platformAdmin={await isPlatformAdmin()}
       />
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8">
         {showBanner && (
           <div className={`mb-5 flex flex-wrap items-center justify-between gap-2 rounded-lg px-4 py-3 text-sm ${access.state === 'locked' ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'}`}>
             <span>{access.message ?? `Your free trial ends in ${access.trialDaysLeft} day(s).`}</span>
-            <Link href="/settings/billing" className="font-semibold underline">
-              {access.state === 'trialing' ? 'Choose a plan' : 'Go to billing'}
-            </Link>
+            {access.suspended ? (
+              <a href={`mailto:${LEGAL.email}`} className="font-semibold underline">
+                Contact support
+              </a>
+            ) : (
+              <Link href="/settings/billing" className="font-semibold underline">
+                {access.state === 'trialing' ? 'Choose a plan' : 'Go to billing'}
+              </Link>
+            )}
           </div>
         )}
         {children}

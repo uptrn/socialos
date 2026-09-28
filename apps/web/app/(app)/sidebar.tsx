@@ -1,7 +1,7 @@
 'use client';
 
 import clsx from 'clsx';
-import { BookOpenText, CalendarDays, ChartColumn, Gauge, Images, LayoutTemplate, ListChecks, LogOut, MessagesSquare, PenSquare, Plug, Settings, ShieldCheck, Telescope, Users } from 'lucide-react';
+import { BookOpenText, CalendarDays, ChartColumn, Gauge, Images, LayoutTemplate, ListChecks, LogOut, MessagesSquare, PenSquare, Plug, Settings, ShieldAlert, ShieldCheck, Telescope, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTransition } from 'react';
@@ -34,6 +34,7 @@ export function Sidebar({
   currentBrandId,
   approvals,
   inboxOpen = 0,
+  platformAdmin = false,
 }: {
   orgName: string;
   orgId: string;
@@ -45,6 +46,8 @@ export function Sidebar({
   approvals?: { count: number };
   /** Comments waiting for a reply. */
   inboxOpen?: number;
+  /** SocialOS staff: show the link to the platform admin console. */
+  platformAdmin?: boolean;
 }) {
   const pathname = usePathname();
   const [pending, startTransition] = useTransition();
@@ -103,6 +106,16 @@ export function Sidebar({
             </Link>
           );
         })}
+        {platformAdmin && (
+          <Link
+            href="/admin"
+            title="Platform admin"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
+          >
+            <ShieldAlert size={18} strokeWidth={2} />
+            <span className="hidden md:inline">Platform admin</span>
+          </Link>
+        )}
       </nav>
 
       <div className="border-t border-border p-3 md:p-4">

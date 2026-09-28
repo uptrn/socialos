@@ -7,7 +7,7 @@ checklist** in the app shows what's still missing.
 
 1. Create a project at https://supabase.com/dashboard. Pick the region closest to your customers.
    Use a paid plan for production: free projects pause when idle and have no point-in-time backups.
-2. Run the 15 migrations in `supabase/migrations/` in filename order (SQL editor, or
+2. Run the 16 migrations in `supabase/migrations/` in filename order (SQL editor, or
    `npx supabase link --project-ref <ref>` then `npx supabase db push`).
 3. **Authentication → URL configuration:** Site URL = `https://YOUR-DOMAIN`, add
    `https://YOUR-DOMAIN/auth/callback` to Redirect URLs.

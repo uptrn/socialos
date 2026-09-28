@@ -1,7 +1,7 @@
 import { ChevronRight, ClipboardCheck, CreditCard, Link2 } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Card, PageHeader } from '@/components/ui';
+import { buttonClass, Card, PageHeader } from '@/components/ui';
 import { getAccess, getUsage } from '@/lib/billing/access';
 import { getWorkspace } from '@/lib/workspace';
 import { AddBrandForm } from './add-brand-form';
@@ -90,6 +90,21 @@ export default async function SettingsPage() {
               <AddBrandForm />
             </div>
           )}
+        </Card>
+
+        <Card className="p-5">
+          <h2 className="font-semibold">Your data</h2>
+          <p className="mt-0.5 text-sm text-muted">Download a copy as a JSON file. Media files are included as download links valid for 7 days.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {canManage && (
+              <a href="/api/export" className={buttonClass('secondary', 'sm')} download>
+                Export {ws.org.name}
+              </a>
+            )}
+            <a href="/api/export/me" className={buttonClass('secondary', 'sm')} download>
+              Export my personal data
+            </a>
+          </div>
         </Card>
 
         <DangerZone orgName={ws.org.name} isOwner={ws.role === 'owner'} />

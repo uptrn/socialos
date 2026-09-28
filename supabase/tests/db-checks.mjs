@@ -416,3 +416,18 @@ check('clicks from another brand are refused', !otherBrand || (await db.query(`s
 check('members read their clicks', (await as(U2, `select * from link_clicks`)).rows.length === 1);
 check('others cannot', (await as(U5, `select * from link_clicks`)).rows.length === 0);
 check('users cannot record clicks directly', await fails(() => as(U2, `select * from record_link_click('Abc1234', 'h', null, null, false)`)));
+
+// --- Protected organization fields (migration 16) ---
+await as(U2, `update organizations set billing_exempt = true where id = '${o2}'`).catch(() => {});
+check('owners cannot make their organization billing-exempt', (await db.query(`select billing_exempt from organizations where id = '${o2}'`)).rows[0].billing_exempt === false);
+await as(U2, `update organizations set suspended_at = null, suspended_reason = 'x' where id = '${o2}'`).catch(() => {});
+check('owners cannot change suspension', (await db.query(`select suspended_reason from organizations where id = '${o2}'`)).rows[0].suspended_reason === null);
+await as(U2, `update organizations set name = 'Other Renamed' where id = '${o2}'`);
+check('owners can still rename their organization', (await db.query(`select name from organizations where id = '${o2}'`)).rows[0].name === 'Other Renamed');
+await db.query(`update organizations set suspended_at = now(), suspended_reason = 'Spam' where id = '${o2}'`);
+check('the server can suspend an organization', (await db.query(`select suspended_reason from organizations where id = '${o2}'`)).rows[0].suspended_reason === 'Spam');
+await db.query(`update organizations set suspended_at = null, suspended_reason = null where id = '${o2}'`);
+const overview = (await db.query(`select * from platform_overview()`)).rows[0];
+check('platform overview works', overview.organizations >= 1 && overview.users >= 1);
+check('platform org list works', (await db.query(`select * from platform_org_list()`)).rows.some((r) => r.id === o2 && r.owner_email === 'owner2@example.com'));
+check('users cannot read platform data', await fails(() => as(U2, `select * from platform_org_list()`)));

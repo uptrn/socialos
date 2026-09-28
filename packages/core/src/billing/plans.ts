@@ -74,9 +74,24 @@ export interface BillingAccess {
   /** Why the account is limited, for display. */
   message?: string;
   trialDaysLeft?: number;
+  /** Suspended by SocialOS staff (abuse, fraud, legal): locked regardless of billing. */
+  suspended?: boolean;
 }
 
 const DAY = 86_400_000;
+
+/** Billing access, overridden by a suspension from SocialOS staff. */
+export function computeAccess(sub: SubscriptionRecord | null, exempt: boolean, now: Date, suspension?: { reason: string | null } | null): BillingAccess {
+  const access = computeBillingAccess(sub, exempt, now);
+  if (!suspension) return access;
+  return {
+    ...access,
+    state: 'locked',
+    suspended: true,
+    trialDaysLeft: undefined,
+    message: `This workspace is suspended${suspension.reason ? `: ${suspension.reason}` : ''}. Contact support.`,
+  };
+}
 
 /**
  * What an organization may do right now.
@@ -85,7 +100,7 @@ const DAY = 86_400_000;
  * - grace: payment failed recently; everything still works for PAYMENT_GRACE_DAYS
  * - locked: trial over without a plan, canceled, or unpaid past the grace period -> read-only
  */
-export function computeAccess(sub: SubscriptionRecord | null, exempt: boolean, now: Date): BillingAccess {
+function computeBillingAccess(sub: SubscriptionRecord | null, exempt: boolean, now: Date): BillingAccess {
   if (exempt) return { plan: 'internal', limits: PLANS.internal, state: 'active' };
   const paidPlan = (PAID_PLANS as readonly string[]).includes(sub?.plan ?? '') ? (sub!.plan as PaidPlan) : null;
 

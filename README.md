@@ -144,6 +144,14 @@ YouTube (unaudited project) and TikTok (unaudited app) force uploads to private.
   including the YouTube/Google disclosures; set the `LEGAL_*` variables and have them reviewed by a lawyer.
 - Settings → **Setup checklist** (owners and admins): what's configured, what's still required, and when
   each scheduled job last ran.
+- Settings → **Your data**: export the organization (owners/admins) or your personal data as JSON (GDPR);
+  media files are included as 7-day download links. Secrets are never exported.
+- **Platform admin console** (`/admin`, only for `PLATFORM_ADMIN_EMAILS`): every organization with plan,
+  owner, usage and AI spend; suspend an organization (publishing, AI and scheduling stop within a minute and
+  due posts are paused, not lost), lift a suspension, put an organization on the free Internal plan, extend
+  a trial. Every action is written to the organization's audit log as `platform_admin`.
+- Billing and suspension fields on an organization can only be changed by the server (migration 16), not by
+  workspace owners.
 - Settings → **Danger zone**: delete the organization (cancels Stripe, deletes files, data and stored
   tokens) or your own account. Needed for GDPR and Meta's data deletion rules.
 - `/api/health` for uptime monitoring, security headers, invitations limited to 30 per hour, and CI
@@ -153,7 +161,7 @@ YouTube (unaudited project) and TikTok (unaudited app) force uploads to private.
 ## Setup
 
 1. **Supabase project** (free tier is fine): create one at https://supabase.com/dashboard.
-2. **Apply the database migrations** (fifteen files), either:
+2. **Apply the database migrations** (sixteen files), either:
    - SQL editor: run each file in `supabase/migrations/` in filename order, or
    - CLI: `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.
 3. **Environment:** copy `apps/web/.env.example` to `apps/web/.env.local` and fill in the values from
