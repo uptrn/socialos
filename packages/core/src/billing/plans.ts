@@ -17,7 +17,7 @@ export type Feature = (typeof FEATURES)[number];
 
 export const PAID_PLANS = ['starter', 'growth', 'agency'] as const;
 export type PaidPlan = (typeof PAID_PLANS)[number];
-export type PlanId = PaidPlan | 'trial' | 'internal';
+export type PlanId = PaidPlan | 'trial' | 'internal' | 'free';
 
 export interface PlanLimits {
   label: string;
@@ -52,6 +52,9 @@ export const PLANS: Record<PlanId, PlanLimits> = {
   agency: { label: 'Agency', monthlyUsd: 399, brands: 15, socialAccounts: 75, aiBudgetUsd: 150, features: ALL_FEATURES },
   // Our own portfolio and custom (Enterprise) deals: set billing_exempt on the organization.
   internal: { label: 'Internal', monthlyUsd: null, brands: 1000, socialAccounts: 10000, aiBudgetUsd: 1000, features: ALL_FEATURES },
+  // Company mode (billing switched off, invite-only): everything included. The AI cap is a safety
+  // net for the AI bill and can be changed with AI_MONTHLY_BUDGET_USD.
+  free: { label: 'Company', monthlyUsd: null, brands: 100, socialAccounts: 1000, aiBudgetUsd: 200, features: ALL_FEATURES },
 };
 
 export const TRIAL_DAYS = 14;
@@ -79,6 +82,17 @@ export interface BillingAccess {
 }
 
 const DAY = 86_400_000;
+
+/**
+ * Access while billing is switched off: everyone on the Free plan (internal organizations keep the
+ * Internal plan); only a suspension by SocialOS staff locks a workspace.
+ */
+export function computeFreeAccess(exempt: boolean, suspension?: { reason: string | null } | null): BillingAccess {
+  const plan: PlanId = exempt ? 'internal' : 'free';
+  const access: BillingAccess = { plan, limits: PLANS[plan], state: 'active' };
+  if (!suspension) return access;
+  return { ...access, state: 'locked', suspended: true, message: `This workspace is suspended${suspension.reason ? `: ${suspension.reason}` : ''}. Contact support.` };
+}
 
 /** Billing access, overridden by a suspension from SocialOS staff. */
 export function computeAccess(sub: SubscriptionRecord | null, exempt: boolean, now: Date, suspension?: { reason: string | null } | null): BillingAccess {

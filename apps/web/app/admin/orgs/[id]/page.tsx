@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { z } from 'zod';
 import { Card, PageHeader, StatusBadge } from '@/components/ui';
 import { getAccess } from '@/lib/billing/access';
+import { isSaasMode } from '@/lib/mode';
 import { createAdminClient } from '@/lib/supabase/server';
 import { OrgControls } from './org-controls';
 
@@ -12,6 +13,7 @@ export default async function AdminOrgPage({ params }: PageProps<'/admin/orgs/[i
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const db = createAdminClient();
+  const saas = isSaasMode();
   const { data: org } = await db.from('organizations').select('id, name, slug, created_at, billing_exempt, suspended_at, suspended_reason').eq('id', id).maybeSingle();
   if (!org) notFound();
 
@@ -41,6 +43,16 @@ export default async function AdminOrgPage({ params }: PageProps<'/admin/orgs/[i
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="space-y-5">
+          {!saas && (
+            <Card className="p-5 text-sm">
+              <h2 className="font-semibold">Access</h2>
+              <p className="mt-1 text-muted">
+                {access.limits.label} plan · up to {access.limits.brands} brands, {access.limits.socialAccounts} accounts, ${access.limits.aiBudgetUsd} of AI per month
+                {access.message ? ` · ${access.message}` : ''}
+              </p>
+            </Card>
+          )}
+          {saas && (
           <Card className="p-5">
             <h2 className="font-semibold">Billing</h2>
             <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-sm sm:grid-cols-[160px_1fr]">
@@ -67,6 +79,7 @@ export default async function AdminOrgPage({ params }: PageProps<'/admin/orgs/[i
               </dd>
             </dl>
           </Card>
+          )}
 
           <Card className="p-5">
             <h2 className="font-semibold">Members</h2>
@@ -134,7 +147,7 @@ export default async function AdminOrgPage({ params }: PageProps<'/admin/orgs/[i
         <div className="space-y-5">
           <Card className="p-5">
             <h2 className="mb-3 font-semibold">Actions</h2>
-            <OrgControls id={org.id} suspended={!!org.suspended_at} exempt={org.billing_exempt} stripeManaged={!!sub?.stripe_subscription_id} />
+            <OrgControls id={org.id} suspended={!!org.suspended_at} exempt={org.billing_exempt} stripeManaged={!saas || !!sub?.stripe_subscription_id} />
           </Card>
           <Card className="p-5">
             <h2 className="font-semibold">Audit log</h2>

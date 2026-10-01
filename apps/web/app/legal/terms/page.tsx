@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { PAYMENT_GRACE_DAYS, TRIAL_DAYS } from '@socialos/core';
 import { LEGAL } from '@/lib/legal';
+import { isCompanyMode } from '@/lib/mode';
 
 export const metadata: Metadata = { title: 'Terms of Service' };
 
@@ -59,7 +60,13 @@ export default function TermsPage() {
       </ul>
       <p>We may suspend accounts that break these rules or put the service or others at risk.</p>
 
-      <h2>7. Plans, trial and payment</h2>
+      <h2>7. {isCompanyMode() ? 'Fees' : 'Plans, trial and payment'}</h2>
+      {isCompanyMode() ? (
+        <p>
+          {product} is currently provided without charge to invited users of {company}. If paid plans are introduced, account owners will be told at least 30 days in
+          advance and nothing will be charged without their agreement.
+        </p>
+      ) : (
       <ul>
         <li>New organizations get a {TRIAL_DAYS}-day free trial. No card is needed; when it ends, choose a plan to keep publishing.</li>
         <li>Paid plans are billed in advance, monthly or yearly, through Stripe, and renew automatically until cancelled.</li>
@@ -68,6 +75,7 @@ export default function TermsPage() {
         <li>We&apos;ll give at least 30 days&apos; notice of price changes, which apply from your next renewal.</li>
         <li>Prices exclude taxes, which are added where applicable.</li>
       </ul>
+      )}
 
       <h2>8. Ending the agreement</h2>
       <p>

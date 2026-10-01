@@ -3,7 +3,9 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { createUserClient } from '@/lib/supabase/server';
+import { isCompanyMode } from '@/lib/mode';
+import { platformAdminEmails } from '@/lib/platform-admin';
+import { createAdminClient, createUserClient } from '@/lib/supabase/server';
 
 export interface AuthState {
   error?: string;
@@ -17,6 +19,20 @@ const credentials = z.object({
   next: z.string().optional(),
 });
 
+/** Company mode: platform admins, or people with an open invitation, may create an account. */
+async function mayCreateAccount(email: string): Promise<boolean> {
+  const address = email.trim().toLowerCase();
+  if (platformAdminEmails().includes(address)) return true;
+  const { count } = await createAdminClient()
+    .from('org_invitations')
+    .select('id', { count: 'exact', head: true })
+    .eq('email', address)
+    .is('accepted_at', null)
+    .is('revoked_at', null)
+    .gt('expires_at', new Date().toISOString());
+  return (count ?? 0) > 0;
+}
+
 export async function authenticate(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const parsed = credentials.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
@@ -27,6 +43,9 @@ export async function authenticate(_prev: AuthState, formData: FormData): Promis
   const safeNext = next && next.startsWith('/') && !next.startsWith('//') ? next : undefined;
 
   if (mode === 'signup') {
+    if (isCompanyMode() && !(await mayCreateAccount(email))) {
+      return { error: 'SocialOS is invite-only. Ask your administrator to invite this email address, then use the link in the invitation.' };
+    }
     const origin = (await headers()).get('origin') ?? '';
     const after = safeNext ?? '/onboarding';
     const { data, error } = await supabase.auth.signUp({

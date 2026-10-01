@@ -44,7 +44,7 @@ export default async function UsagePage() {
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
             <div className={pct >= 90 ? 'h-full bg-danger' : 'bg-brand-gradient h-full'} style={{ width: `${pct}%` }} />
           </div>
-          <p className="tabular mt-1 text-xs text-muted">of ${budget} monthly budget on your plan</p>
+          <p className="tabular mt-1 text-xs text-muted">of ${budget} monthly AI budget</p>
         </Card>
         {byAgent.map(([agent, v]) => (
           <Card key={agent} className="p-5">

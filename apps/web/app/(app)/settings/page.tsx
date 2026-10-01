@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { buttonClass, Card, PageHeader } from '@/components/ui';
 import { getAccess, getUsage } from '@/lib/billing/access';
+import { isSaasMode } from '@/lib/mode';
 import { getWorkspace } from '@/lib/workspace';
 import { AddBrandForm } from './add-brand-form';
 import { ApprovalToggle } from './approval-toggle';
@@ -14,11 +15,13 @@ export default async function SettingsPage() {
   const ws = await getWorkspace();
   const [access, usage] = await Promise.all([getAccess(ws.org.id), getUsage(ws.org.id)]);
   const canManage = ['owner', 'admin'].includes(ws.role);
+  const saas = isSaasMode();
 
   return (
     <>
       <PageHeader title="Settings" description={ws.org.name} />
       <div className="max-w-3xl space-y-5">
+        {saas && (
         <Link href="/settings/billing" className="block">
           <Card className="flex items-center gap-4 p-5 transition-colors hover:bg-surface-2">
             <CreditCard className="text-brand" />
@@ -34,6 +37,7 @@ export default async function SettingsPage() {
             <ChevronRight size={18} className="text-muted" />
           </Card>
         </Link>
+        )}
 
         {canManage && (
           <Link href="/settings/setup" className="block">
@@ -68,7 +72,7 @@ export default async function SettingsPage() {
               <p className="text-xs text-muted">With approval on, managers&apos; posts wait for an owner, admin or reviewer before they&apos;re scheduled.</p>
             </div>
             <span className="tabular text-sm text-muted">
-              {usage.brands} of {access.limits.brands} on your plan
+              {saas ? `${usage.brands} of ${access.limits.brands} on your plan` : `${usage.brands} brand${usage.brands === 1 ? '' : 's'}`}
             </span>
           </div>
           <ul className="mt-3 divide-y divide-border">

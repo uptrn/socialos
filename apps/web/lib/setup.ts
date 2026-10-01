@@ -5,6 +5,7 @@ import { CRON_JOBS, type CronJob } from './heartbeat';
 import { IMAGE_PROVIDERS } from './images/providers';
 import { pexelsConfigured } from './images/pexels';
 import { legalConfigured } from './legal';
+import { isSaasMode } from './mode';
 import { PROVIDERS } from './oauth/providers';
 import { createAdminClient } from './supabase/server';
 
@@ -40,14 +41,15 @@ export async function setupStatus(): Promise<{ sections: SetupSection[]; heartbe
         { label: 'Legal pages', ok: legalConfigured(), required: true, hint: 'LEGAL_COMPANY_NAME, LEGAL_CONTACT_EMAIL, LEGAL_ADDRESS, LEGAL_JURISDICTION. Have the texts reviewed.' },
       ],
     },
-    {
+    // Billing only exists in SaaS mode (APP_MODE=saas).
+    ...(!isSaasMode() ? [] : [{
       title: 'Billing',
       items: [
         { label: 'Stripe key', ok: stripeConfigured(), required: true, hint: 'STRIPE_SECRET_KEY, then run npm run stripe:setup.' },
         { label: 'Stripe webhook', ok: env('STRIPE_WEBHOOK_SECRET'), required: true, hint: `Webhook to ${appUrl || '{APP_URL}'}/api/webhooks/stripe; secret in STRIPE_WEBHOOK_SECRET.` },
         { label: 'Live mode', ok: (process.env.STRIPE_SECRET_KEY ?? '').startsWith('sk_live'), required: false, hint: 'Switch to live keys when you start charging.' },
       ],
-    },
+    }]),
     {
       title: 'AI and images',
       items: [

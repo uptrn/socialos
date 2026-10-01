@@ -7,6 +7,7 @@ import { PLATFORM_META, PlatformIcon } from '@/components/platform';
 import { PublicShell } from '@/components/public-shell';
 import { buttonClass, Card } from '@/components/ui';
 import { FEATURE_LABELS } from '@/lib/billing/access';
+import { isCompanyMode } from '@/lib/mode';
 import { createUserClient } from '@/lib/supabase/server';
 
 export const metadata: Metadata = {
@@ -28,6 +29,8 @@ export default async function Home() {
   const supabase = await createUserClient();
   const { data } = await supabase.auth.getUser();
   if (data.user) redirect('/calendar');
+  // Company mode: an internal tool, so no public marketing or pricing page.
+  if (isCompanyMode()) redirect('/login');
 
   return (
     <PublicShell>

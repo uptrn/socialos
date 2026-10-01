@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import Link from 'next/link';
 import { Card, inputClass, PageHeader } from '@/components/ui';
+import { isSaasMode } from '@/lib/mode';
 import { setupStatus } from '@/lib/setup';
 import { createAdminClient } from '@/lib/supabase/server';
 
@@ -47,6 +48,7 @@ function Tile({ label, value, tone }: { label: string; value: string | number; t
 function statusLabel(o: OrgRow): { text: string; className: string } {
   if (o.suspended_at) return { text: 'Suspended', className: 'bg-danger/15 text-danger' };
   if (o.billing_exempt) return { text: 'Internal', className: 'bg-violet/12 text-violet' };
+  if (!isSaasMode()) return { text: 'Active', className: 'bg-success/15 text-success' };
   if (o.status === 'active') return { text: o.plan ?? 'active', className: 'bg-success/15 text-success' };
   if (o.status === 'trialing') return { text: 'Trial', className: 'bg-brand/12 text-brand' };
   return { text: o.status ?? 'No plan', className: 'bg-warning/15 text-warning' };
@@ -70,9 +72,13 @@ export default async function AdminHome({ searchParams }: PageProps<'/admin'>) {
       <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Tile label="Organizations" value={o.organizations ?? 0} />
         <Tile label="Users" value={o.users ?? 0} />
-        <Tile label="Paying" value={o.active_paid ?? 0} />
-        <Tile label="On trial" value={o.trialing ?? 0} />
-        <Tile label="Locked / canceled / past due" value={o.locked_or_canceled ?? 0} tone={o.locked_or_canceled ? 'warning' : undefined} />
+        {isSaasMode() && (
+          <>
+            <Tile label="Paying" value={o.active_paid ?? 0} />
+            <Tile label="On trial" value={o.trialing ?? 0} />
+            <Tile label="Locked / canceled / past due" value={o.locked_or_canceled ?? 0} tone={o.locked_or_canceled ? 'warning' : undefined} />
+          </>
+        )}
         <Tile label="Internal (free)" value={o.exempt ?? 0} />
         <Tile label="Suspended" value={o.suspended ?? 0} tone={o.suspended ? 'danger' : undefined} />
         <Tile label="Posts published, 24 h" value={o.posts_published_24h ?? 0} />

@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react';
 import { Button, Card, Field, inputClass } from '@/components/ui';
 import { authenticate, type AuthState } from './actions';
 
-export function LoginForm({ next, initialMode = 'signin' }: { next?: string; initialMode?: 'signin' | 'signup' }) {
+export function LoginForm({ next, initialMode = 'signin', inviteOnly = false }: { next?: string; initialMode?: 'signin' | 'signup'; inviteOnly?: boolean }) {
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [state, action, pending] = useActionState<AuthState, FormData>(authenticate, {});
 
@@ -12,7 +12,7 @@ export function LoginForm({ next, initialMode = 'signin' }: { next?: string; ini
     <Card className="p-6">
       <h1 className="text-xl font-bold">{mode === 'signin' ? 'Sign in' : 'Create your account'}</h1>
       <p className="mt-1 text-sm text-muted">
-        {mode === 'signin' ? 'Welcome back to SocialOS.' : 'Start scheduling posts for your brands.'}
+        {mode === 'signin' ? 'Welcome back to SocialOS.' : inviteOnly ? 'Use the email address your invitation was sent to.' : 'Start scheduling posts for your brands.'}
       </p>
       {next?.startsWith('/invite/') && (
         <p className="mt-3 rounded-lg bg-brand/10 px-3 py-2 text-sm text-brand">
@@ -59,7 +59,7 @@ export function LoginForm({ next, initialMode = 'signin' }: { next?: string; ini
       </form>
 
       <p className="mt-5 text-center text-sm text-muted">
-        {mode === 'signin' ? 'New to SocialOS?' : 'Already have an account?'}{' '}
+        {mode === 'signin' ? (inviteOnly ? 'Invited to SocialOS?' : 'New to SocialOS?') : 'Already have an account?'}{' '}
         <button type="button" className="font-semibold text-brand hover:underline" onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}>
           {mode === 'signin' ? 'Create an account' : 'Sign in'}
         </button>

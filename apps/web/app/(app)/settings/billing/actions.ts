@@ -4,12 +4,14 @@ import { PAID_PLANS, priceLookupKey } from '@socialos/core';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { ensureCustomer, getStripe } from '@/lib/billing/stripe';
+import { isSaasMode } from '@/lib/mode';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getWorkspace } from '@/lib/workspace';
 
 const appUrl = () => process.env.APP_URL ?? 'http://localhost:3000';
 
 async function requireOwner() {
+  if (!isSaasMode()) throw new Error('Billing is switched off.');
   const ws = await getWorkspace();
   if (!['owner', 'admin'].includes(ws.role)) throw new Error('Only owners and admins can manage billing.');
   return ws;

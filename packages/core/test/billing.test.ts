@@ -59,3 +59,15 @@ describe('suspension', () => {
     expect(computeAccess(null, true, now, { reason: null }).state).toBe('locked');
   });
 });
+
+describe('billing switched off', () => {
+  it('gives everyone the Free plan with every feature, keeps Internal, and still honours suspension', async () => {
+    const { computeFreeAccess, canUse, FEATURES } = await import('../src');
+    const free = computeFreeAccess(false);
+    expect(free).toMatchObject({ plan: 'free', state: 'active' });
+    expect(FEATURES.every((f) => canUse(free, f))).toBe(true);
+    expect(free.limits.aiBudgetUsd).toBe(200);
+    expect(computeFreeAccess(true).plan).toBe('internal');
+    expect(computeFreeAccess(false, { reason: 'Spam' })).toMatchObject({ state: 'locked', suspended: true });
+  });
+});

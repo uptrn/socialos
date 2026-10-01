@@ -2,6 +2,8 @@ import { PAID_PLANS, PLANS, type Feature } from '@socialos/core';
 import clsx from 'clsx';
 import { Check } from 'lucide-react';
 import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { isSaasMode } from '@/lib/mode';
 import { Card, PageHeader } from '@/components/ui';
 import { FEATURE_LABELS, getAccess, getUsage } from '@/lib/billing/access';
 import { stripeConfigured } from '@/lib/billing/stripe';
@@ -31,6 +33,8 @@ function Meter({ label, used, limit, money = false }: { label: string; used: num
 }
 
 export default async function BillingPage({ searchParams }: PageProps<'/settings/billing'>) {
+  // Company mode has no billing.
+  if (!isSaasMode()) redirect('/settings');
   const { checkout } = await searchParams;
   const ws = await getWorkspace();
   const [access, usage] = await Promise.all([getAccess(ws.org.id), getUsage(ws.org.id)]);

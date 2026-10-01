@@ -3,6 +3,8 @@
 import { isValidTimeZone } from '@socialos/core';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
+import { isCompanyMode } from '@/lib/mode';
+import { isPlatformAdmin } from '@/lib/platform-admin';
 import { createUserClient } from '@/lib/supabase/server';
 
 const schema = z.object({
@@ -19,6 +21,9 @@ export async function createWorkspace(_prev: { error?: string }, formData: FormD
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const { orgName, brandName, timezone } = parsed.data;
+  if (isCompanyMode() && !(await isPlatformAdmin())) {
+    return { error: 'SocialOS is invite-only. Ask your administrator for an invitation.' };
+  }
 
   const supabase = await createUserClient();
   // Random suffix keeps org slugs unique without a lookup.

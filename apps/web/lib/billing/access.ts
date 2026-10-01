@@ -1,6 +1,7 @@
 import 'server-only';
-import { canUse, computeAccess, planFor, PLANS, type BillingAccess, type Feature } from '@socialos/core';
+import { canUse, computeAccess, computeFreeAccess, planFor, PLANS, type BillingAccess, type Feature } from '@socialos/core';
 import { cache } from 'react';
+import { isCompanyMode } from '../mode';
 import { createAdminClient } from '../supabase/server';
 
 export class BillingError extends Error {}
@@ -21,6 +22,13 @@ export const FEATURE_LABELS: Record<Feature, string> = {
 /** The organization's plan and billing state (cached per request). */
 export const getAccess = cache(async (orgId: string): Promise<BillingAccess> => {
   const db = createAdminClient();
+  if (isCompanyMode()) {
+    // Billing is off: everything is included; only a suspension by SocialOS staff locks a workspace.
+    const { data: org } = await db.from('organizations').select('billing_exempt, suspended_at, suspended_reason').eq('id', orgId).single();
+    const access = computeFreeAccess(!!org?.billing_exempt, org?.suspended_at ? { reason: org.suspended_reason } : null);
+    const budget = Number(process.env.AI_MONTHLY_BUDGET_USD);
+    return budget > 0 ? { ...access, limits: { ...access.limits, aiBudgetUsd: budget } } : access;
+  }
   const [{ data: sub }, { data: org }] = await Promise.all([
     db.from('subscriptions').select('plan, status, trial_ends_at, past_due_since, stripe_subscription_id').eq('org_id', orgId).maybeSingle(),
     db.from('organizations').select('billing_exempt, suspended_at, suspended_reason').eq('id', orgId).single(),
@@ -66,6 +74,10 @@ export async function requireCapacity(orgId: string, kind: 'brands' | 'socialAcc
   const limit = access.limits[kind];
   if (usage[kind] + count > limit) {
     const noun = kind === 'brands' ? 'brands' : 'social accounts';
-    throw new BillingError(`Your ${access.limits.label} plan includes ${limit} ${noun} (you have ${usage[kind]}). Upgrade in Settings → Billing for more.`);
+    throw new BillingError(
+      isCompanyMode()
+        ? `This workspace can have up to ${limit} ${noun} (you have ${usage[kind]}).`
+        : `Your ${access.limits.label} plan includes ${limit} ${noun} (you have ${usage[kind]}). Upgrade in Settings → Billing for more.`,
+    );
   }
 }
